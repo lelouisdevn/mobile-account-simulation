@@ -30,7 +30,7 @@ public class Goicuoc {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
 
-			System.out.println("Noi ket thanh cong");
+//			System.out.println("Noi ket thanh cong");
 		} catch (Exception ex) {
 			System.out.println("Noi ket khong thanh cong");
 			ex.printStackTrace();
@@ -89,7 +89,7 @@ public class Goicuoc {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
 
-			System.out.println("Noi ket thanh cong");
+//			System.out.println("Noi ket thanh cong");
 		} catch (Exception ex) {
 			System.out.println("Noi ket khong thanh cong");
 			ex.printStackTrace();
@@ -122,6 +122,75 @@ public class Goicuoc {
 			
 		}catch (SQLException ex) {
 			System.out.println(ex.getMessage());
+		}
+	}
+	public void suaGoiCuoc() {
+		Connection conn = null;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
+
+			System.out.println("Noi ket thanh cong");
+		} catch (Exception ex) {
+			System.out.println("Noi ket khong thanh cong");
+			ex.printStackTrace();
+		}
+		
+		PreparedStatement pstmt = null;
+		Scanner sc = new Scanner(System.in);
+		
+		PreparedStatement p = null;
+		ResultSet r = null;
+		
+		System.out.println("Nhập mã số gói cước: ");
+		String tengc = sc.nextLine();
+		
+		String ten = new String();
+		String mt = new String();
+		int th = 0;
+		int gia = 0;
+		int id = 0;
+		try {
+			p = conn.prepareStatement("SELECT * FROM goicuoc WHERE GOICUOCten=?");
+			p.setString(1, tengc);
+			
+			r = p.executeQuery();
+			r = p.getResultSet();
+			
+			
+			while (r.next()) {
+				id = r.getInt("idGOICUOC");
+				System.out.println("Nhập tên mới: ");
+				ten = sc.nextLine();
+				if (ten.equals("")) {
+					ten = r.getString("GOICUOCten");
+				}
+				System.out.println("Nhập mô tả: ");
+				mt = sc.nextLine();
+				if (mt.equals("")) {
+					mt = r.getString("GOICUOCmota");
+				}
+				
+				System.out.println("Nhập thời hiệu: ");
+				th = sc.nextInt();
+				System.out.println("Nhập giá mới: ");
+				gia = sc.nextInt();			
+			}
+		}catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		
+		try {
+			pstmt = conn.prepareStatement("UPDATE goicuoc SET GOICUOCten=?, GOICUOCmota=?, GOICUOCthoihieu=?, GOICUOCgia=? WHERE idGOICUOC=?");
+			pstmt.setString(1,  ten);
+			pstmt.setString(2, mt);
+			pstmt.setInt(3, th);
+			pstmt.setInt(4, gia);
+			pstmt.setInt(5, id);
+			
+			pstmt.executeUpdate();
+		}catch (SQLException e) {
+			System.out.println(e.getMessage());
 		}
 	}
 }

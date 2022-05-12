@@ -9,6 +9,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
+import goicuoc.Goicuoc;
+import goicuoc.dkGoicuoc;
+
 public class User {
 	private int mand;
 	private String tennd;
@@ -25,22 +28,35 @@ public class User {
 		sdt = new String();
 		sodu = 0;
 	}
+	public User(int mand) {
+		this.mand = mand;
+	}
 	
-	public int userMenu() {
+//	hiển thị menu chức năng phía người dùng.
+	public String userMenu() {
 		Scanner sc = new Scanner(System.in);
 		
 		System.out.println("1: Kiểm tra tài khoản.");
 		System.out.println("2: Nạp tiền điện thoại.");
 		System.out.println("3. Đăng ký gói cước.");
-		System.out.println("4. Hủy gói cước");
-		System.out.println("5. Chỉnh sửa thông tin cá nhân.");
+		System.out.println("4. Chỉnh sửa thông tin cá nhân.");
 		
-		int index = sc.nextInt();
+		String index = sc.nextLine();
+		
+		String data[];
+		data = new String[2];
+		if (index.equals("1") || index.equals("2") || index.equals("3") || index.equals("4") || index.equals("5")) {
+			return index;
+		}else if (index.equals("*101#")) {
+			return index = "1";
+		}
 		
 		return index;
 	}
 	
-	public void action(int index) {
+//	action thực thi khi người dùng chọn số;
+	public void action(String i) {
+		int index = Integer.parseInt(i);
 		switch (index) {
 		case 1:
 			this.ktTaiKhoan();
@@ -48,19 +64,88 @@ public class User {
 		case 2: 
 			this.napTienDT();
 			break;
+		case 3:
+			Goicuoc gc = new Goicuoc();
+			gc.dsGoiCuoc();
+			this.dkGoiCuoc();
+			break;
+		case 4:
+			this.capNhatTT();
+			break;
 		}
 	}
-//	kiểm tra tài khoản:
 	
-	public void ktTaiKhoan() {
-		this.mand = 1;
-		
+	public int getID() {
+		return this.mand;
+	}
+	
+//	user updates his information.
+	public void capNhatTT() {
 		Connection conn = null;
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
+		} catch (Exception ex) {
+			System.out.println("Noi ket khong thanh cong");
+			ex.printStackTrace();
+		}
+		CallableStatement cstmt = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			pstmt = conn.prepareStatement("SELECT USERname, USERdob, USERcmnd FROM users WHERE idUSER=?");
+			pstmt.setInt(1, this.mand);
+			rs = pstmt.executeQuery();
+			rs = pstmt.getResultSet();
+			
+			String bf_uname = new String();
+			String bf_dob = new String();
+			String bf_cmnd = new String();
+			while (rs.next()) {
+				bf_uname = rs.getString("USERname");
+				bf_dob = rs.getString("USERdob");
+				bf_cmnd = rs.getString("USERcmnd");
+			}
+			
+			Scanner sc = new Scanner(System.in);
+			System.out.println("Cập nhật tên người dùng: ");
+			String uname = sc.nextLine();
+			if (uname.equals("")) {
+				uname = bf_uname;
+			}
+			
+			System.out.println("Cập nhật ngày sinh: ");
+			String dob = sc.nextLine();
+			if (dob.equals("")) {
+				dob = bf_dob;
+			}
+			
+			System.out.println("Cập nhật số CMND: ");
+			String cmnd = sc.nextLine();
+			if (cmnd.equals("")) {
+				cmnd = bf_cmnd;
+			}
+			
+//			System.out.println(dob);
+			
+			cstmt = conn.prepareCall("{? = call capNhatTT(?,?,?,?)}");
+			cstmt.registerOutParameter(1, java.sql.Types.BIGINT);
+			cstmt.setInt(2, this.mand);
+			cstmt.setString(3, uname);
+			cstmt.setString(4, dob);
+			cstmt.setString(5, cmnd);
 
-			System.out.println("Noi ket thanh cong");
+			cstmt.executeUpdate();
+		}catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		
+	}
+	public int getSodu() {
+		Connection conn = null;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
 		} catch (Exception ex) {
 			System.out.println("Noi ket khong thanh cong");
 			ex.printStackTrace();
@@ -68,106 +153,98 @@ public class User {
 		
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
+		int sodu = 0;
 		try {
 			pstmt = conn.prepareStatement("SELECT * FROM users WHERE idUSER=?");
 			pstmt.setInt(1, this.mand);
 			
 			rs = pstmt.executeQuery();
-			
 			rs = pstmt.getResultSet();
 			
-			while(rs.next()) {
-				System.out.println("Tài khoản của bạn là: " + rs.getInt("USERsodu"));
+			while (rs.next()) {
+				sodu = rs.getInt("USERsodu");
 			}
-		}catch(SQLException e) {
-			System.out.println(e.getMessage());
-		}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
+		return sodu;
 	}
 	
+	private void dkGoiCuoc() {
+		// TODO Auto-generated method stub
+		dkGoicuoc dk = new dkGoicuoc();
+		dk.dkGoicuoc(this);
+	}
+	
+//	kiểm tra tài khoản:
+	public void ktTaiKhoan() {
+		
+		Connection conn = null;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
+		} catch (Exception ex) {
+//			System.out.println("Noi ket khong thanh cong");
+			ex.printStackTrace();
+		}
+		System.out.println("Tài khoản của bạn là: " + this.getSodu() + " đồng.");
+	}
+	
+//	phương thức nạp tiền điện thoại.
 	public void napTienDT() {
 		Scanner sc = new Scanner(System.in);
 		
 		System.out.println("Nhập mã số thẻ cào: ");
 		String maso = sc.nextLine();
 		
-//		lấy id người dùng, chương trình này sử dụng user có id = 1.
-		
+//		lấy id người dùng.		
 //		lấy số dư hiện tại của người dùng.
 		Connection conn = null;
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
-
-			System.out.println("Noi ket thanh cong");
 		} catch (Exception ex) {
 			System.out.println("Noi ket khong thanh cong");
 			ex.printStackTrace();
 		}
 		
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		
+		int cid = 0;
 		try {
-			pstmt = conn.prepareStatement("SELECT * FROM cards WHERE CARDmaso = ?");
-			pstmt.setString(1, maso);
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			
+			pstmt = conn.prepareStatement("SELECT USERsodu FROM users WHERE idUSER = ?");
+			pstmt.setInt(1, this.mand);
 			
 			rs = pstmt.executeQuery();
-			
 			rs = pstmt.getResultSet();
 			
-			boolean status = false;
-			int id = 0;
-			int state = 1;
+			int oldsodu = 0;
 			while (rs.next()) {
-				id = rs.getInt("idCARD");
-				state = rs.getInt("CARDtrangthai");
-				if (id != 0 && state == 0) {
-					status = true;
+				oldsodu = rs.getInt("USERsodu");
+			}
+			
+			String sql = "SELECT * FROM cards WHERE CARDmaso = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1,  maso);
+			
+			rs = pstmt.executeQuery();
+			rs = pstmt.getResultSet();
+			
+//			System.out.println();
+			while (rs.next()) {
+				cid = rs.getInt("idCARD");
+				System.out.println(cid);
+				if (rs.getInt("CARDtrangthai") == 0) {
+					CallableStatement cstmt = null;
 					
-//					mệnh giá thẻ cào.
-					int menhgia = rs.getInt("CARDmenhgia");
-//					System.out.println(rs.getString("CARDmenhgia"));
+					cstmt = conn.prepareCall("{call naptienDT(?,?,?,?)}");
+					cstmt.setInt(1, this.mand);
+					cstmt.setInt(2, cid);
+					cstmt.setInt(3, oldsodu);
+					cstmt.setInt(4, rs.getInt("CARDmenhgia"));
 					
-//					update card status and isuser;S
-					PreparedStatement pst = null;
-					pst = conn.prepareStatement("UPDATE cards SET idUSER=?, CARDtrangthai=?");
-					
-					this.mand = 1;
-					pst.setInt(1, mand);
-					pst.setInt(2, 1);
-					
-					pst.executeUpdate();
-					
-//					lấy số dư cũ tài khoản người dùng.
-					pst = null;
-					ResultSet r = null;
-					
-					pst = conn.prepareStatement("SELECT * FROM users WHERE idUSER=?");
-					pst.setInt(1, this.mand);
-					
-					r = pst.executeQuery();
-					r = pst.getResultSet();
-					
-					int sodu = 0;
-					while (r.next()) {
-						sodu = r.getInt("USERsodu");
-					}
-					
-//					số dư mới = số dư cũ + mệnh giá thẻ nạp.
-					int tong = sodu + menhgia;
-					pst = conn.prepareStatement("UPDATE users SET USERsodu=? WHERE idUSER=?");
-					pst.setInt(1, tong);
-					pst.setInt(2, this.mand);
-					
-					pst.executeUpdate();
-					
-//					In ra số dư tài khoản sau khi nạp tiền.
-					this.ktTaiKhoan();
-				}
-				else {
-//					in ra thông báo nếu mã số thẻ cào không hợp lệ
-//					hoặc hết hạn sử dụng (CARDtrangthai = 1).
-					System.out.println("Mã thẻ đã được sử dụng hoặc hết hạn.");
+					cstmt.executeUpdate();
 				}
 			}
 		}catch (SQLException e) {
@@ -180,13 +257,10 @@ public class User {
 		try {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
-
-			System.out.println("Noi ket thanh cong");
 		} catch (Exception ex) {
 			System.out.println("Noi ket khong thanh cong");
 			ex.printStackTrace();
 		}
-		
 		
 		Scanner sc = new Scanner(System.in);		
 		System.out.println("Nhập tên người dùng: ");
@@ -301,7 +375,7 @@ public class User {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
 
-			System.out.println("Noi ket thanh cong");
+//			System.out.println("Noi ket thanh cong");
 		} catch (Exception ex) {
 			System.out.println("Noi ket khong thanh cong");
 			ex.printStackTrace();
@@ -350,7 +424,7 @@ public class User {
 			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
 
-			System.out.println("Noi ket thanh cong");
+//			System.out.println("Noi ket thanh cong");
 		} catch (Exception ex) {
 			System.out.println("Noi ket khong thanh cong");
 			ex.printStackTrace();
@@ -366,7 +440,6 @@ public class User {
 			stmt.executeQuery();
 			
 			rs = stmt.getResultSet();
-//			System.out.println(rs);
 			
 			System.out.println("Bạn có chắc muốn xóa người dùng này?");
 			System.out.println("|------------------------------------------------------------------------------------------------------|");

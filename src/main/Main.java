@@ -1,12 +1,51 @@
 package main;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 import admin.Admin;
 import user.User;
 
 public class Main {
+	public int[] signIn() {
+		Connection conn = null;
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+			conn = DriverManager.getConnection("jdbc:mysql://localhost/htqltbdd?"+"user=root");
 
+		} catch (Exception ex) {
+			System.out.println("Noi ket khong thanh cong");
+			ex.printStackTrace();
+		}
+		
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Nhập số điện thoại để đăng nhập:");
+		String sdt = sc.nextLine();
+		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int data[];
+		data = new int[2];
+		try {
+			pstmt = conn.prepareStatement("SELECT * FROM users WHERE USERsdt = ?");
+			pstmt.setString(1,  sdt);
+			rs = pstmt.executeQuery();
+			
+			rs = pstmt.getResultSet();
+			
+			while (rs.next()) {
+				data[0] = rs.getInt("UserRole");
+				data[1] = rs.getInt("idUSER");
+			}
+		}catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		return data;
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		Scanner sc = new Scanner(System.in);
@@ -14,13 +53,16 @@ public class Main {
 		int state;
 		do {
 			System.out.println("HỆ THỐNG QUẢN LÝ THUÊ BAO DI ĐỘNG\n---------------------------------");
-			System.out.println("Chọn 1 vai trò: \n1: Quản trị\n2: Khách hàng");
-			int role = sc.nextInt();
-			if (role == 1 || role == 2) {
-//				valid
+			Main m = new Main();
+			int data[] = m.signIn();
+			int role = 0;
+			if (data[0] == 0) {
+				role = 2;
+				state = 1;
+			}else if (data[0] == 1){
+				role = 1;
 				state = 1;
 			}else {
-//				invalid
 				state = 0;
 			}
 			switch (role) {
@@ -40,10 +82,10 @@ public class Main {
 				
 				case 2: 
 					System.out.println("Bạn đang thực hiện chức năng với vai trò khách hàng.");
-					User usr = new User();
+					User usr = new User(data[1]);
 					int c2_key;
 					do {
-						int index = usr.userMenu();
+						String index = usr.userMenu();
 						usr.action(index);
 						
 						System.out.println("Chọn 1 để tiếp tục, 0 để dừng.");

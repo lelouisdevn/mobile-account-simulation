@@ -2,6 +2,7 @@ package admin;
 
 import java.util.Scanner;
 
+import card.Card;
 import goicuoc.Goicuoc;
 import user.User;
 
@@ -29,6 +30,7 @@ public class Admin {
 		System.out.println("9: Thêm thẻ nạp.");
 		System.out.println("10: Sửa thẻ nạp: ");
 		System.out.println("11: Xóa thẻ nạp.");
+		System.out.println("12: Hiển thị danh sách thẻ nạp.");
 		
 		
 		int key = sc.nextInt();
@@ -36,6 +38,7 @@ public class Admin {
 	}
 	
 	public void action(int index) {
+		Scanner sc = new Scanner(System.in);
 		switch (index) {
 		case 1: 
 			this.dsNguoiDung();
@@ -62,13 +65,20 @@ public class Admin {
 			this.xoaGoiCuoc();
 			break;
 		case 9:
-			this.themTheNap();
+			System.out.println("Nhập số lượng thẻ nạp: ");
+			int n = sc.nextInt();
+			for (int i = 0; i< n; i++) {
+				this.themTheNap();
+			}
 			break;
 		case 10:
 			this.suaTheNap();
 			break;
 		case 11:
 			this.xoaTheNap();
+			break;
+		case 12:
+			this.dsTheNap();
 			break;
 		default: 
 			System.out.println("ERROR");
@@ -106,7 +116,8 @@ public class Admin {
 	}
 //	Chức năng 7: sửa gói cước
 	public void suaGoiCuoc() {
-		
+		Goicuoc gc = new Goicuoc();
+		gc.suaGoiCuoc();
 	}
 //	Chức năng 8: xóa gói cước
 	public void xoaGoiCuoc() {
@@ -114,14 +125,21 @@ public class Admin {
 	}
 //	Chức năng 9: thêm thẻ nạp
 	public void themTheNap() {
-		
+		Card cr = new Card();
+		cr.themTheNap();
 	}
 //	Chức năng 10: sửa thẻ nạp.
 	public void suaTheNap() {
-		
+		Card cr = new Card();
+		cr.suaTheNap();
 	}
 //	Chức năng 11: xóa thẻ nạp.
 	public void xoaTheNap() {
-		
+		Card cr = new Card();
+		cr.xoaTheNap();
+	}
+	public void dsTheNap() {
+		Card cr = new Card();
+		cr.dsTheNap();
 	}
 }
